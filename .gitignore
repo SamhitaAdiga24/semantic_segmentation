@@ -1,0 +1,6 @@
+input/
+saved_models/
+__pycache__/
+*.pth
+Semantic/
+test_*.py
