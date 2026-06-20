@@ -83,17 +83,9 @@ The following metrics were used:
 
 ## Sample Results
 
-### Original Drone Image
-
-![Original Image](images/original_image.png)
-
-### Ground Truth Mask
-
-![Ground Truth Mask](images/ground_truth_mask.png)
-
-### Predicted Segmentation Mask
-
-![Prediction](images/prediction_color.png)
+| Original Image | Ground Truth Mask | Predicted Mask |
+|----------------|-------------------|----------------|
+| ![](images/original_image.png) | ![](images/ground_truth_mask.png) | ![](images/prediction_color.png) |
 
 ## Results
 
