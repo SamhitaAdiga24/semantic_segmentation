@@ -81,6 +81,10 @@ The following metrics were used:
 
 ---
 
+## Sample Prediction
+
+![Prediction](images/prediction_color.png)
+
 ## Results
 
 | Model                      | Pixel Accuracy | Mean IoU | Dice Score |
