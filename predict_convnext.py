@@ -1,45 +1,86 @@
-import cv2
 import torch
+import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import os
+
 from convnext_model import get_model
 
+# -----------------------------
+# Device
+# -----------------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# -----------------------------
+# Load Model
+# -----------------------------
 model = get_model().to(device)
-model.load_state_dict(torch.load("saved_models/convnext.pth"))
+
+model.load_state_dict(
+    torch.load(
+        "saved_models/convnext.pth",
+        map_location=device
+    )
+)
+
 model.eval()
 
-image_path = "input/original_images/" + sorted(__import__("os").listdir("input/original_images"))[0]
+# -----------------------------
+# Load Image
+# -----------------------------
+image_path = "input/original_images/" + sorted(os.listdir("input/original_images"))[0]
+mask_path = "input/masked_images/" + sorted(os.listdir("input/masked_images"))[0]
 
 image = cv2.imread(image_path)
 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-img = cv2.resize(image_rgb, (256, 256))
+image_resized = cv2.resize(image_rgb, (256, 256))
 
 x = torch.tensor(
-    img,
+    image_resized,
     dtype=torch.float32
-).permute(2,0,1).unsqueeze(0) / 255.0
+).permute(2, 0, 1).unsqueeze(0) / 255.0
 
 x = x.to(device)
 
+# -----------------------------
+# Prediction
+# -----------------------------
 with torch.no_grad():
     output = model(x)
 
-pred = torch.argmax(output, dim=1).squeeze().cpu().numpy()
+pred_mask = torch.argmax(output, dim=1).squeeze().cpu().numpy()
 
-colors = np.array([
-    [0, 0, 0],        # Class 0
-    [0, 255, 0],      # Class 1
-    [255, 0, 0],      # Class 2
-    [255, 255, 0],    # Class 3
-    [255, 0, 255]     # Class 4
-], dtype=np.uint8)
+# -----------------------------
+# Ground Truth
+# -----------------------------
+gt_mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
 
-colored_mask = colors[pred]
-
-cv2.imwrite(
-    "prediction_color.png",
-    cv2.cvtColor(colored_mask, cv2.COLOR_RGB2BGR)
+gt_mask = cv2.resize(
+    gt_mask,
+    (256, 256),
+    interpolation=cv2.INTER_NEAREST
 )
-print("Saved as prediction.png")
+
+# -----------------------------
+# Display Results
+# -----------------------------
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 3, 1)
+plt.imshow(image_resized)
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(1, 3, 2)
+plt.imshow(gt_mask)
+plt.title("Ground Truth")
+plt.axis("off")
+
+plt.subplot(1, 3, 3)
+plt.imshow(pred_mask)
+plt.title("ConvNeXt Prediction")
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
